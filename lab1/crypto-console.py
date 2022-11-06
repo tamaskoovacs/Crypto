@@ -4,15 +4,12 @@ File: crypto-console.py
 -----------------------
 Implements a console menu to interact with the cryptography functions exported
 by the crypto module.
-
 If you are a student, you shouldn't need to change anything in this file.
 """
-import random
-
 from crypto import (encrypt_caesar, decrypt_caesar,
                     encrypt_vigenere, decrypt_vigenere,
-                    generate_private_key, create_public_key,
-                    encrypt_mh, decrypt_mh)
+                    encrypt_scytale, decrypt_scytale,
+                    encrypt_railfence, decrypt_railfence)
 
 
 #############################
@@ -21,7 +18,7 @@ from crypto import (encrypt_caesar, decrypt_caesar,
 
 def get_tool():
     print("* Tool *")
-    return _get_selection("(C)aesar, (V)igenere or (M)erkle-Hellman? ", "CVM")
+    return _get_selection("(C)aesar, (V)igenere, (S)Scytale or (R)Railfence? ", "CVSR")
 
 
 def get_action():
@@ -102,6 +99,12 @@ def clean_caesar(text):
 def clean_vigenere(text):
     return ''.join(ch for ch in text.upper() if ch.isupper())
 
+def clean_scytale(text):
+    return ''.join(ch for ch in text.upper() if ch.isupper())
+
+def clean_railfence(text):
+    return ''.join(ch for ch in text.upper() if ch.isupper())
+
 
 def run_caesar():
     action = get_action()
@@ -131,32 +134,31 @@ def run_vigenere():
     set_output(output)
 
 
-def run_merkle_hellman():
+def run_scytale():
     action = get_action()
+    encrypting = action == 'E'
+    data = clean_scytale(get_input(binary=False))
 
-    print("* Seed *")
-    seed = input("Set Seed [enter for random]: ")
-    import random
-    if not seed:
-        random.seed()
-    else:
-        random.seed(seed)
+    print("* Transform *")
+    circumference = input("Circumference? ")
 
-    print("* Building private key...")
+    print("{}crypting {} using Scytale cipher and circumference {}...".format('En' if encrypting else 'De', data, circumference))
 
-    private_key = generate_private_key()
-    public_key = create_public_key(private_key)
+    output = (encrypt_scytale if encrypting else decrypt_scytale)(data, circumference)
 
-    if action == 'E':  # Encrypt
-        data = get_input(binary=True)
-        print("* Transform *")
-        chunks = encrypt_mh(data, public_key)
-        output = ' '.join(map(str, chunks))
-    else:  # Decrypt
-        data = get_input(binary=False)
-        chunks = [int(line.strip()) for line in data.split() if line.strip()]
-        print("* Transform *")
-        output = decrypt_mh(chunks, private_key)
+    set_output(output)
+
+def run_railfence():
+    action = get_action()
+    encrypting = action == 'E'
+    data = clean_railfence(get_input(binary=False))
+
+    print("* Transform *")
+    num_rails = input("Number of rails? ")
+
+    print("{}crypting {} using Railfence cipher and number of rails {}...".format('En' if encrypting else 'De', data, num_rails))
+
+    output = (encrypt_railfence if encrypting else decrypt_railfence)(data, num_rails)
 
     set_output(output)
 
@@ -164,7 +166,6 @@ def run_merkle_hellman():
 def run_suite():
     """
     Runs a single iteration of the cryptography suite.
-
     Asks the user for input text from a string or file, whether to encrypt
     or decrypt, what tool to use, and where to show the output.
     """
@@ -175,7 +176,8 @@ def run_suite():
     commands = {
         'C': run_caesar,         # Caesar Cipher
         'V': run_vigenere,       # Vigenere Cipher
-        'M': run_merkle_hellman  # Merkle-Hellman Knapsack Cryptosystem
+        'S': run_scytale,        # Scytale Cipher    
+        'R': run_railfence       # Railfence Cipher
     }
     commands[tool]()
 
